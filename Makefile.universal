@@ -1,0 +1,97 @@
+# Universal Makefile - Calvin Wirathama Katoroy (NPM: 2306242395)
+
+# Auto-detect OS
+UNAME_S := $(shell uname -s 2>/dev/null || echo Windows)
+ifeq ($(UNAME_S),Windows)
+    EXE_EXT = .exe
+    MKDIR = mkdir
+    RM = del /Q
+else
+    EXE_EXT = 
+    MKDIR = mkdir -p
+    RM = rm -f
+endif
+
+# Compiler settings
+CXX = g++
+CXXFLAGS = -std=c++11 -Wall -Wextra -O2
+
+# Executables
+MAIN_EXEC = enhanced_analyzer$(EXE_EXT)
+VIZ_EXEC = data_visualizer$(EXE_EXT)
+SIMPLE_VIZ_EXEC = simple_visualizer$(EXE_EXT)
+
+# One-command setup
+.PHONY: plug-and-play
+plug-and-play: setup dependencies all demo
+	@echo "🎉 Plug-and-play setup completed!"
+
+# Auto-detect and install dependencies
+.PHONY: dependencies
+dependencies:
+	@echo "🔍 Checking dependencies..."
+ifeq ($(UNAME_S),Linux)
+	@which g++ > /dev/null || (echo "Installing g++..." && sudo apt-get update && sudo apt-get install -y build-essential)
+endif
+ifeq ($(UNAME_S),Darwin)
+	@which g++ > /dev/null || (echo "Installing g++..." && xcode-select --install)
+endif
+	@echo "✅ Dependencies checked!"
+
+# Smart setup
+.PHONY: setup
+setup:
+	@echo "📁 Creating directories..."
+	@$(MKDIR) data/raw data/processed data/results docs/visualizations
+	@echo "✅ Setup completed!"
+
+# Compile with error handling
+.PHONY: all
+all: $(MAIN_EXEC) $(VIZ_EXEC) $(SIMPLE_VIZ_EXEC)
+	@echo "✅ All programs compiled successfully!"
+
+$(MAIN_EXEC): src/main.cpp src/network_analyzer.cpp
+	@echo "🔧 Compiling enhanced analyzer..."
+	@$(CXX) $(CXXFLAGS) -o $@ $^
+
+$(VIZ_EXEC): data_visualizer.cpp
+	@echo "📊 Compiling visualizer..."
+	@$(CXX) $(CXXFLAGS) -o $@ $^
+
+$(SIMPLE_VIZ_EXEC): simple_visualizer.cpp
+	@echo "📈 Compiling ASCII visualizer..."
+	@$(CXX) $(CXXFLAGS) -o $@ $^
+
+# Demo workflow
+.PHONY: demo
+demo: $(MAIN_EXEC)
+	@echo "🎬 Ready for demo! Run: ./$(MAIN_EXEC)"
+	@echo "💡 Workflow: Menu 1→10→11→0, then 'make viz'"
+
+# Easy visualization
+.PHONY: viz
+viz: $(SIMPLE_VIZ_EXEC)
+	@echo "📊 Generating visualizations..."
+	@./$(SIMPLE_VIZ_EXEC)
+
+# Help with OS-specific instructions
+.PHONY: help
+help:
+	@echo "🎯 Method B Network Analyzer - Universal Build System"
+	@echo "Calvin Wirathama Katoroy - NPM: 2306242395"
+	@echo ""
+	@echo "🚀 One-command setup: make plug-and-play"
+	@echo ""
+	@echo "📋 Available targets:"
+	@echo "  make plug-and-play  - Complete auto-setup (RECOMMENDED)"
+	@echo "  make setup         - Create directories"
+	@echo "  make all           - Compile programs"
+	@echo "  make demo          - Ready for demonstration"
+	@echo "  make viz           - Generate visualizations"
+	@echo "  make dependencies  - Install missing dependencies"
+	@echo ""
+ifeq ($(UNAME_S),Windows)
+	@echo "💻 Windows detected - use PowerShell: .\build.ps1 setup"
+else
+	@echo "🐧 Unix detected - all make commands available"
+endif
